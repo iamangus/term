@@ -20,6 +20,7 @@ ssh -p 2222 angus@localhost
 |---|---|---|
 | `USER_NAME` | Yes | Local username to create |
 | `GH_USER_NAME` | Yes | GitHub username (SSH public keys fetched from `https://github.com/<user>.keys`) |
+| `OPENCHAMBER_UI_PASSWORD` | No | Password for the OpenChamber web UI. If set, OpenChamber starts automatically on port 3000 |
 | `TZ` | No | Timezone, defaults to `America/Chicago` |
 
 ## What Happens on Start
@@ -58,6 +59,10 @@ ssh -p 2222 angus@localhost
 - **bind-utils** (`dig`, `nslookup`)
 - **nmap-ncat**
 - **openssh-server**
+
+### AI & Agents
+- **OpenCode** (via `opencode` CLI)
+- **OpenChamber** (web UI for OpenCode, via `openchamber` CLI)
 
 ### Browser
 - **Chromium** (headless)

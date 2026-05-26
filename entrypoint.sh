@@ -13,4 +13,9 @@ sudo chsh -s $(which zsh)
 
 [ -f /home/$USER_NAME/.ssh/authorized_keys ] || su $USER_NAME --command "curl https://github.com/$GH_USER_NAME.keys | tee -a ~/.ssh/authorized_keys"
 
+# Start OpenChamber as the user if a UI password is provided
+if [ -n "${OPENCHAMBER_UI_PASSWORD:-}" ]; then
+  su ${USER_NAME} --command "OPENCHAMBER_UI_PASSWORD=${OPENCHAMBER_UI_PASSWORD} openchamber &"
+fi
+
 /usr/sbin/sshd -D
