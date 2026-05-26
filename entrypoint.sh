@@ -15,7 +15,7 @@ sudo chsh -s $(which zsh)
 
 # Start OpenChamber as the user if a UI password is provided
 if [ -n "${OPENCHAMBER_UI_PASSWORD:-}" ]; then
-  su ${USER_NAME} --command "OPENCHAMBER_UI_PASSWORD=${OPENCHAMBER_UI_PASSWORD} openchamber &"
+  su ${USER_NAME} --command "OPENCHAMBER_UI_PASSWORD=${OPENCHAMBER_UI_PASSWORD} nohup /usr/local/bin/openchamber >/dev/null 2>&1 &"
 fi
 
 /usr/sbin/sshd -D
