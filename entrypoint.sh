@@ -1,19 +1,51 @@
 #!/bin/bash
 set -eu
 
-sudo useradd -s $(which zsh) -m ${USER_NAME}
+log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
 
-sudo chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME} 
+# --- validate required env ---
+if [ -z "${USER_NAME:-}" ]; then
+  log "ERROR: USER_NAME is required"
+  exit 1
+fi
+if [ -z "${GH_USER_NAME:-}" ]; then
+  log "ERROR: GH_USER_NAME is required"
+  exit 1
+fi
 
-sudo echo "${USER_NAME} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${USER_NAME}
+# --- create user ---
+log "Creating user: ${USER_NAME}"
+useradd -s "$(which zsh)" -m "${USER_NAME}"
 
-sudo chsh -s $(which zsh)
+echo "${USER_NAME} ALL=(ALL) NOPASSWD: ALL" > "/etc/sudoers.d/${USER_NAME}"
 
-[ -d /home/$USER_NAME/.ssh ] || su $USER_NAME --command "mkdir -p ~/.ssh && chmod 700 ~/.ssh"
+chsh -s "$(which zsh)" "${USER_NAME}"
 
-[ -f /home/$USER_NAME/.ssh/authorized_keys ] || su $USER_NAME --command "curl https://github.com/$GH_USER_NAME.keys | tee -a ~/.ssh/authorized_keys"
+# --- SSH setup ---
+SSH_DIR="/home/${USER_NAME}/.ssh"
 
-# Start OpenChamber as the user if a UI password is provided
-su ${USER_NAME} --command "nohup openchamber --host 0.0.0.0 >/dev/null 2>&1 &"
+if [ ! -d "${SSH_DIR}" ]; then
+  log "Setting up SSH directory"
+  mkdir -p "${SSH_DIR}"
+  chmod 700 "${SSH_DIR}"
+  chown -R "${USER_NAME}:${USER_NAME}" "${SSH_DIR}"
+fi
 
-/usr/sbin/sshd -D
+if [ ! -f "${SSH_DIR}/authorized_keys" ]; then
+  log "Fetching SSH keys from GitHub for ${GH_USER_NAME}"
+  curl -fsSL "https://github.com/${GH_USER_NAME}.keys" > "${SSH_DIR}/authorized_keys"
+  chmod 600 "${SSH_DIR}/authorized_keys"
+  chown "${USER_NAME}:${USER_NAME}" "${SSH_DIR}/authorized_keys"
+fi
+
+# --- start OpenChamber ---
+if command -v openchamber >/dev/null 2>&1; then
+  log "Starting OpenChamber as ${USER_NAME}"
+  su - "${USER_NAME}" -c "nohup openchamber --host 0.0.0.0 >/dev/null 2>&1 &"
+else
+  log "OpenChamber not found on PATH — skipping"
+fi
+
+# --- run SSH daemon ---
+log "Starting sshd"
+exec /usr/sbin/sshd -D
