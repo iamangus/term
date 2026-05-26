@@ -41,7 +41,7 @@ fi
 # --- start OpenChamber ---
 if command -v openchamber >/dev/null 2>&1; then
   log "Starting OpenChamber as ${USER_NAME}"
-  su - "${USER_NAME}" -c "nohup openchamber --host 0.0.0.0 >/dev/null 2>&1 &"
+  su - "${USER_NAME}" -c "OPENCODE_BINARY=/home/${USER_NAME}/.opencode/bin/opencode nohup openchamber --host 0.0.0.0 >/dev/null 2>&1 &"
 else
   log "OpenChamber not found on PATH — skipping"
 fi
