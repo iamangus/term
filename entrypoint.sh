@@ -62,10 +62,18 @@ if command -v openchamber >/dev/null 2>&1; then
     log "OpenChamber already running"
   else
     log "Starting OpenChamber"
+    :> /tmp/openchamber.log
     OPENCODE_BINARY="${HOME}/.opencode/bin/opencode" \
-      nohup openchamber --host 0.0.0.0 >/dev/null 2>&1 &
+      nohup openchamber --host 0.0.0.0 > /tmp/openchamber.log 2>&1 &
     oc_pid=$!
     log "OpenChamber PID: ${oc_pid}"
+    sleep 2
+    if kill -0 "${oc_pid}" 2>/dev/null; then
+      log "OpenChamber running"
+    else
+      log "ERROR: OpenChamber exited immediately"
+      tail -20 /tmp/openchamber.log
+    fi
   fi
 else
   log "OpenChamber not found on PATH — skipping"
@@ -88,4 +96,4 @@ shutdown() {
 }
 trap shutdown TERM INT QUIT
 
-wait
+wait "${sshd_pid}"
