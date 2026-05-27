@@ -62,7 +62,11 @@ if command -v openchamber >/dev/null 2>&1; then
     log "OpenChamber already running"
   else
     log "Starting OpenChamber"
-    rm -rf "${HOME}/.config/openchamber/run"/*
+    OC_RUN_DIR="${HOME}/.config/openchamber/run"
+    if [ -n "$(ls -A "${OC_RUN_DIR}" 2>/dev/null)" ]; then
+      log "WARNING: Unclean shutdown detected — cleaning stale run state"
+      rm -rf "${OC_RUN_DIR}"/*
+    fi
     :> /tmp/openchamber.log
     OPENCODE_BINARY="${HOME}/.opencode/bin/opencode" \
       nohup openchamber --host 0.0.0.0 > /tmp/openchamber.log 2>&1 &
@@ -87,12 +91,22 @@ log "sshd PID: ${sshd_pid}"
 
 shutdown() {
   log "Received shutdown signal"
-  [ -n "${oc_pid}" ] && kill -TERM "${oc_pid}" 2>/dev/null || true
-  kill -TERM "${sshd_pid}" 2>/dev/null || true
-  for _ in $(seq 10); do
-    kill -0 "${sshd_pid}" 2>/dev/null || break
-    sleep 1
-  done
+  if [ -n "${oc_pid}" ] && kill -0 "${oc_pid}" 2>/dev/null; then
+    log "Shutting down OpenChamber"
+    kill -TERM "${oc_pid}" 2>/dev/null || true
+    for _ in $(seq 5); do
+      kill -0 "${oc_pid}" 2>/dev/null || break
+      sleep 1
+    done
+  fi
+  if [ -n "${sshd_pid}" ] && kill -0 "${sshd_pid}" 2>/dev/null; then
+    log "Shutting down sshd"
+    kill -TERM "${sshd_pid}" 2>/dev/null || true
+    for _ in $(seq 5); do
+      kill -0 "${sshd_pid}" 2>/dev/null || break
+      sleep 1
+    done
+  fi
   exit 0
 }
 trap shutdown TERM INT QUIT
