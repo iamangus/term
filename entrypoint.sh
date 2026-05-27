@@ -62,6 +62,7 @@ if command -v openchamber >/dev/null 2>&1; then
     log "OpenChamber already running"
   else
     log "Starting OpenChamber"
+    rm -rf "${HOME}/.config/openchamber/run"/*
     :> /tmp/openchamber.log
     OPENCODE_BINARY="${HOME}/.opencode/bin/opencode" \
       nohup openchamber --host 0.0.0.0 > /tmp/openchamber.log 2>&1 &
