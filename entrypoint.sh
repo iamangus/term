@@ -91,22 +91,14 @@ log "sshd PID: ${sshd_pid}"
 
 shutdown() {
   log "Received shutdown signal"
-  if [ -n "${oc_pid}" ] && kill -0 "${oc_pid}" 2>/dev/null; then
-    log "Shutting down OpenChamber"
-    kill -TERM "${oc_pid}" 2>/dev/null || true
-    for _ in $(seq 5); do
-      kill -0 "${oc_pid}" 2>/dev/null || break
-      sleep 1
-    done
-  fi
-  if [ -n "${sshd_pid}" ] && kill -0 "${sshd_pid}" 2>/dev/null; then
-    log "Shutting down sshd"
-    kill -TERM "${sshd_pid}" 2>/dev/null || true
-    for _ in $(seq 5); do
-      kill -0 "${sshd_pid}" 2>/dev/null || break
-      sleep 1
-    done
-  fi
+  [ -n "${oc_pid}" ] && kill -TERM "${oc_pid}" 2>/dev/null || true
+  kill -TERM "${sshd_pid}" 2>/dev/null || true
+  for _ in $(seq 5); do
+    killers=$(kill -0 "${sshd_pid}" 2>/dev/null && echo 1 || echo 0)
+    [ -n "${oc_pid}" ] && kill -0 "${oc_pid}" 2>/dev/null && killers=1
+    [ "${killers}" = "0" ] && break
+    sleep 1
+  done
   exit 0
 }
 trap shutdown TERM INT QUIT
