@@ -94,6 +94,7 @@ if command -v openchamber >/dev/null 2>&1; then
     OPENCODE_BINARY="${OPENCODE_BIN}" \
     OPENCODE_SKIP_START=true \
     OPENCODE_HOST=http://127.0.0.1:4096 \
+    OPENCHAMBER_ALLOW_UNAUTHENTICATED_LAN=true \
       nohup openchamber --host 0.0.0.0 > /tmp/openchamber.log 2>&1 &
     oc_pid=$!
     log "OpenChamber PID: ${oc_pid}"
