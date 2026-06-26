@@ -27,7 +27,9 @@ ssh -p 2222 angus@localhost
 
 1. A user is created with zsh as the default shell and passwordless `sudo`
 2. SSH keys are pulled from GitHub and written to `~/.ssh/authorized_keys`
-3. `sshd` starts in the foreground on port 22
+3. `opencode serve` starts on `0.0.0.0:4096` (headless server, external)
+4. `openchamber` starts on `0.0.0.0:3000`, connecting to the opencode server via loopback
+5. `sshd` starts in the foreground on port 22
 
 ## Installed Tools
 

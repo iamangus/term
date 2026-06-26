@@ -34,7 +34,7 @@ RUN ssh-keygen -A
 COPY entrypoint.sh /usr/bin/entrypoint.sh
 RUN chmod +x /usr/bin/entrypoint.sh
 
-EXPOSE 22 3000
+EXPOSE 22 3000 4096
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD pgrep sshd || exit 1

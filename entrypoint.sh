@@ -56,6 +56,28 @@ fi
 
 # ===== USER PHASE =====
 
+oc_serve_pid=""
+if command -v opencode >/dev/null 2>&1; then
+  if pgrep -u "$(id -u)" "^opencode$" >/dev/null 2>&1; then
+    log "opencode serve already running"
+  else
+    log "Starting opencode serve on 0.0.0.0:4096"
+    :> /tmp/opencode.log
+    nohup opencode serve --hostname 0.0.0.0 --port 4096 > /tmp/opencode.log 2>&1 &
+    oc_serve_pid=$!
+    log "opencode serve PID: ${oc_serve_pid}"
+    sleep 2
+    if kill -0 "${oc_serve_pid}" 2>/dev/null; then
+      log "opencode serve running"
+    else
+      log "ERROR: opencode serve exited immediately"
+      tail -20 /tmp/opencode.log
+    fi
+  fi
+else
+  log "opencode not found on PATH — skipping"
+fi
+
 oc_pid=""
 if command -v openchamber >/dev/null 2>&1; then
   if pgrep -u "$(id -u)" "^openchamber$" >/dev/null 2>&1; then
@@ -68,7 +90,8 @@ if command -v openchamber >/dev/null 2>&1; then
       rm -rf "${OC_RUN_DIR}"/*
     fi
     :> /tmp/openchamber.log
-    OPENCODE_BINARY="${HOME}/.opencode/bin/opencode" \
+    OPENCODE_SKIP_START=true \
+    OPENCODE_HOST=http://127.0.0.1:4096 \
       nohup openchamber --host 0.0.0.0 > /tmp/openchamber.log 2>&1 &
     oc_pid=$!
     log "OpenChamber PID: ${oc_pid}"
@@ -92,10 +115,12 @@ log "sshd PID: ${sshd_pid}"
 shutdown() {
   log "Received shutdown signal"
   [ -n "${oc_pid}" ] && kill -TERM "${oc_pid}" 2>/dev/null || true
+  [ -n "${oc_serve_pid}" ] && kill -TERM "${oc_serve_pid}" 2>/dev/null || true
   kill -TERM "${sshd_pid}" 2>/dev/null || true
   for _ in $(seq 5); do
     killers=$(kill -0 "${sshd_pid}" 2>/dev/null && echo 1 || echo 0)
     [ -n "${oc_pid}" ] && kill -0 "${oc_pid}" 2>/dev/null && killers=1
+    [ -n "${oc_serve_pid}" ] && kill -0 "${oc_serve_pid}" 2>/dev/null && killers=1
     [ "${killers}" = "0" ] && break
     sleep 1
   done
