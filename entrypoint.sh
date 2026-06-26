@@ -56,14 +56,15 @@ fi
 
 # ===== USER PHASE =====
 
+OPENCODE_BIN="${HOME}/.opencode/bin/opencode"
 oc_serve_pid=""
-if command -v opencode >/dev/null 2>&1; then
+if [ -x "${OPENCODE_BIN}" ]; then
   if pgrep -u "$(id -u)" "^opencode$" >/dev/null 2>&1; then
     log "opencode serve already running"
   else
     log "Starting opencode serve on 0.0.0.0:4096"
     :> /tmp/opencode.log
-    nohup opencode serve --hostname 0.0.0.0 --port 4096 > /tmp/opencode.log 2>&1 &
+    nohup "${OPENCODE_BIN}" serve --hostname 0.0.0.0 --port 4096 > /tmp/opencode.log 2>&1 &
     oc_serve_pid=$!
     log "opencode serve PID: ${oc_serve_pid}"
     sleep 2
@@ -75,7 +76,7 @@ if command -v opencode >/dev/null 2>&1; then
     fi
   fi
 else
-  log "opencode not found on PATH — skipping"
+  log "opencode binary not found at ${OPENCODE_BIN} — skipping"
 fi
 
 oc_pid=""
@@ -90,6 +91,7 @@ if command -v openchamber >/dev/null 2>&1; then
       rm -rf "${OC_RUN_DIR}"/*
     fi
     :> /tmp/openchamber.log
+    OPENCODE_BINARY="${OPENCODE_BIN}" \
     OPENCODE_SKIP_START=true \
     OPENCODE_HOST=http://127.0.0.1:4096 \
       nohup openchamber --host 0.0.0.0 > /tmp/openchamber.log 2>&1 &
