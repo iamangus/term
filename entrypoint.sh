@@ -58,7 +58,14 @@ fi
 
 OPENCODE_BIN="${HOME}/.opencode/bin/opencode"
 oc_serve_pid=""
+if [ ! -x "${OPENCODE_BIN}" ]; then
+  log "opencode binary not found at ${OPENCODE_BIN} — installing"
+  mkdir -p "${HOME}/.opencode"
+  curl -fsSL https://opencode.ai/install | bash
+fi
 if [ -x "${OPENCODE_BIN}" ]; then
+  log "Upgrading opencode to latest"
+  "${OPENCODE_BIN}" upgrade >/dev/null 2>&1 || log "WARNING: opencode upgrade failed — continuing"
   if pgrep -u "$(id -u)" "^opencode$" >/dev/null 2>&1; then
     log "opencode serve already running"
   else
@@ -76,7 +83,7 @@ if [ -x "${OPENCODE_BIN}" ]; then
     fi
   fi
 else
-  log "opencode binary not found at ${OPENCODE_BIN} — skipping"
+  log "opencode install failed — skipping"
 fi
 
 oc_pid=""

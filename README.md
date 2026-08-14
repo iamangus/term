@@ -75,6 +75,36 @@ ssh -p 2222 angus@localhost
 docker build -t term .
 ```
 
+## Updating OpenCode & OpenChamber
+
+Versions are not pinned — both tools always track the latest release.
+
+### OpenCode (`~/.opencode/bin/opencode`)
+
+Installed/upgraded per-user by `entrypoint.sh` at container start (via `https://opencode.ai/install`, then `opencode upgrade`). To update without restarting:
+
+```bash
+opencode upgrade
+# restart the headless server (or restart the container):
+pkill -f "opencode serve" || true
+nohup ~/.opencode/bin/opencode serve --hostname 0.0.0.0 --port 4096 > /tmp/opencode.log 2>&1 &
+```
+
+### OpenChamber (`/usr/bin/openchamber` → `/usr/lib/node_modules/@openchamber/web`)
+
+Baked into the image at build time with `npm install -g @openchamber/web` (unpinned), so an image rebuild picks up the latest version automatically.
+
+To update in-place, note the npm prefix trap: `~/.npmrc` sets `prefix=~/.npm`, so plain `npm install -g` and `openchamber update` install to `~/.npm/lib/node_modules` — **not** `/usr/lib`, which is what `/usr/bin/openchamber` symlinks to. Always target `/usr` explicitly:
+
+```bash
+sudo npm install -g --prefix /usr @openchamber/web@latest
+openchamber restart   # or restart the container
+```
+
+### Rebuilding
+
+Merging to `main` triggers GitHub Actions to rebuild and push `ghcr.io/iamangus/term:latest` + a timestamp tag. Recreating the container from the new image picks up both updates.
+
 ## Image Registry
 
 Pushed to `ghcr.io/iamangus/term` on merge to `main`. Tags: `latest` and a Unix timestamp tag.
