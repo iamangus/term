@@ -27,9 +27,8 @@ ssh -p 2222 angus@localhost
 
 1. A user is created with zsh as the default shell and passwordless `sudo`
 2. SSH keys are pulled from GitHub and written to `~/.ssh/authorized_keys`
-3. `opencode serve` starts on `0.0.0.0:4096` (headless server, external)
-4. `openchamber` starts on `0.0.0.0:3000`, connecting to the opencode server via loopback
-5. `sshd` starts in the foreground on port 22
+3. `openchamber` starts on `0.0.0.0:3000` and owns one managed OpenCode server on `0.0.0.0:4096`
+4. `sshd` starts in the foreground on port 22
 
 ## Installed Tools
 
@@ -81,13 +80,16 @@ Versions are not pinned — both tools always track the latest release.
 
 ### OpenCode (`~/.opencode/bin/opencode`)
 
-Installed/upgraded per-user by `entrypoint.sh` at container start (via `https://opencode.ai/install`, then `opencode upgrade`). To update without restarting:
+Installed/upgraded per-user by `entrypoint.sh` at container start (via `https://opencode.ai/install`, then `opencode upgrade`). OpenChamber owns the single running OpenCode process, so use its update notification in the web UI to upgrade and restart it without restarting the container.
+
+For a shell-only update, stop OpenChamber first, upgrade OpenCode, then start OpenChamber again:
 
 ```bash
+openchamber stop
 opencode upgrade
-# restart the headless server (or restart the container):
-pkill -f "opencode serve" || true
-nohup ~/.opencode/bin/opencode serve --hostname 0.0.0.0 --port 4096 > /tmp/opencode.log 2>&1 &
+OPENCHAMBER_OPENCODE_HOSTNAME=0.0.0.0 OPENCODE_PORT=4096 \
+  OPENCODE_BINARY="$HOME/.opencode/bin/opencode" \
+  openchamber --host 0.0.0.0
 ```
 
 ### OpenChamber (`/usr/bin/openchamber` → `/usr/lib/node_modules/@openchamber/web`)
