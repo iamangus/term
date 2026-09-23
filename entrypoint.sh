@@ -56,6 +56,18 @@ fi
 
 # ===== USER PHASE =====
 
+# Install OpenChamber into the persistent home volume. The web updater runs
+# npm as this user, so it must use the same user-owned global prefix.
+OPENCHAMBER_PREFIX="${HOME}/.npm"
+export NPM_CONFIG_PREFIX="${OPENCHAMBER_PREFIX}"
+export PATH="${OPENCHAMBER_PREFIX}/bin:${PATH}"
+if [ ! -x "${OPENCHAMBER_PREFIX}/bin/openchamber" ]; then
+  log "OpenChamber not found at ${OPENCHAMBER_PREFIX}/bin/openchamber — installing"
+  if ! npm install -g @openchamber/web@latest; then
+    log "WARNING: OpenChamber install failed — skipping"
+  fi
+fi
+
 OPENCODE_BIN="${HOME}/.opencode/bin/opencode"
 if [ ! -x "${OPENCODE_BIN}" ]; then
   log "opencode binary not found at ${OPENCODE_BIN} — installing"

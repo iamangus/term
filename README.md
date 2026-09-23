@@ -27,7 +27,7 @@ ssh -p 2222 angus@localhost
 
 1. A user is created with zsh as the default shell and passwordless `sudo`
 2. SSH keys are pulled from GitHub and written to `~/.ssh/authorized_keys`
-3. `openchamber` starts on `0.0.0.0:3000` and owns one managed OpenCode server on `0.0.0.0:4096`
+3. OpenChamber is installed to the user's home volume at `~/.npm` and starts on `0.0.0.0:3000`, owning one managed OpenCode server on `0.0.0.0:4096`
 4. `sshd` starts in the foreground on port 22
 
 ## Installed Tools
@@ -92,15 +92,15 @@ OPENCHAMBER_OPENCODE_HOSTNAME=0.0.0.0 OPENCODE_PORT=4096 \
   openchamber --host 0.0.0.0
 ```
 
-### OpenChamber (`/usr/bin/openchamber` → `/usr/lib/node_modules/@openchamber/web`)
+### OpenChamber (`~/.npm/bin/openchamber` → `~/.npm/lib/node_modules/@openchamber/web`)
 
-Baked into the image at build time with `npm install -g @openchamber/web` (unpinned), so an image rebuild picks up the latest version automatically.
+Installed as the configured user on the persistent home volume at container startup with `npm install -g @openchamber/web@latest`. A new image is not required to install or update OpenChamber.
 
-To update in-place, note the npm prefix trap: `~/.npmrc` sets `prefix=~/.npm`, so plain `npm install -g` and `openchamber update` install to `~/.npm/lib/node_modules` — **not** `/usr/lib`, which is what `/usr/bin/openchamber` symlinks to. Always target `/usr` explicitly:
+The web UI is the recommended update path. It installs the latest package into the mounted home volume without root access. The running process must be restarted for the new version to load. For a shell-only update:
 
 ```bash
-sudo npm install -g --prefix /usr @openchamber/web@latest
-openchamber restart   # or restart the container
+openchamber update
+openchamber restart
 ```
 
 ### Rebuilding

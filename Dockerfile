@@ -27,8 +27,6 @@ RUN dnf update -y && \
       cups-libs libXScrnSaver libXrandr alsa-lib pango at-spi2-core libXt mesa-libgbm && \
     dnf clean all && rm -rf /var/cache/dnf
 
-RUN npm install -g @openchamber/web
-
 RUN ssh-keygen -A
 
 COPY entrypoint.sh /usr/bin/entrypoint.sh
