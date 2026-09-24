@@ -25,10 +25,16 @@ RUN dnf update -y && \
     dnf install -y --setopt=install_weak_deps=False \
       chromium chromium-headless nss atk at-spi2-atk libXcomposite libXcursor libXdamage libXext libXi libXtst \
       cups-libs libXScrnSaver libXrandr alsa-lib pango at-spi2-core libXt mesa-libgbm && \
-    dnf clean all && rm -rf /var/cache/dnf && \
-    sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config && \
-    rm -f /etc/ssh/sshd_config.d/* && \
-    echo "UsePAM yes" > /etc/ssh/sshd_config.d/01-pam.conf
+    dnf clean all && rm -rf /var/cache/dnf
+
+# 1. Clean out distribution overrides that might conflict
+RUN rm -f /etc/ssh/sshd_config.d/*
+
+# 2. Add explicit overrides bypassing system crypto restrictions
+RUN echo "PubkeyAuthentication yes"          >> /etc/ssh/sshd_config.d/00-term.conf && \
+    echo "StrictModes no"                   >> /etc/ssh/sshd_config.d/00-term.conf && \
+    echo "UsePAM yes"                       >> /etc/ssh/sshd_config.d/00-term.conf && \
+    echo "PubkeyAcceptedKeyTypes +ssh-rsa"  >> /etc/ssh/sshd_config.d/00-term.conf
 
 RUN ssh-keygen -A
 
