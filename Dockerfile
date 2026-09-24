@@ -27,7 +27,8 @@ RUN dnf update -y && \
       cups-libs libXScrnSaver libXrandr alsa-lib pango at-spi2-core libXt mesa-libgbm && \
     dnf clean all && rm -rf /var/cache/dnf && \
     sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config && \
-    rm -f /etc/ssh/sshd_config.d/*
+    rm -f /etc/ssh/sshd_config.d/* && \
+    echo "UsePAM yes" > /etc/ssh/sshd_config.d/01-pam.conf
 
 RUN ssh-keygen -A
 
