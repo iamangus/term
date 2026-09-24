@@ -25,7 +25,8 @@ RUN dnf update -y && \
     dnf install -y --setopt=install_weak_deps=False \
       chromium chromium-headless nss atk at-spi2-atk libXcomposite libXcursor libXdamage libXext libXi libXtst \
       cups-libs libXScrnSaver libXrandr alsa-lib pango at-spi2-core libXt mesa-libgbm && \
-    dnf clean all && rm -rf /var/cache/dnf
+    dnf clean all && rm -rf /var/cache/dnf && \
+    sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config
 
 RUN ssh-keygen -A
 
