@@ -10,13 +10,6 @@ ENV HOSTNAME="devbox"
 
 COPY kubernetes.repo /etc/yum.repos.d/kubernetes.repo 
 
-# Ensure the drop-in directory doesn't override your settings
-RUN rm -f /etc/ssh/sshd_config.d/*
-
-# Explicitly write your Pubkey configurations
-RUN echo "PubkeyAuthentication yes" > /etc/ssh/sshd_config.d/00-pubkey.conf
-RUN echo "StrictModes no" >> /etc/ssh/sshd_config.d/00-pubkey.conf
-
 RUN dnf update -y && \
     dnf install -y dnf-plugins-core && \
     dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo && \
@@ -33,7 +26,8 @@ RUN dnf update -y && \
       chromium chromium-headless nss atk at-spi2-atk libXcomposite libXcursor libXdamage libXext libXi libXtst \
       cups-libs libXScrnSaver libXrandr alsa-lib pango at-spi2-core libXt mesa-libgbm && \
     dnf clean all && rm -rf /var/cache/dnf && \
-    sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config
+    sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config && \
+    rm -f /etc/ssh/sshd_config.d/*
 
 RUN ssh-keygen -A
 
